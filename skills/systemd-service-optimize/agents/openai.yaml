@@ -1,0 +1,4 @@
+interface:
+  display_name: "Systemd Service Optimize"
+  short_description: "Tune systemd services for speed, reliability, and efficiency."
+  default_prompt: "Use $systemd-service-optimize to audit and optimize my nginx.service startup path and resource settings."
