@@ -1,0 +1,7 @@
+{
+  "source": "wcygan/dotfiles/.claude/skills/nvim-config",
+  "sourceType": "git",
+  "repoUrl": "https://github.com/wcygan/dotfiles",
+  "subpath": ".claude/skills/nvim-config",
+  "installedAt": "2026-04-08T14:21:45.617Z"
+}

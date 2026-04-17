@@ -1,0 +1,7 @@
+{
+  "source": "raintree-technology/claude-starter/.claude/skills/stripe",
+  "sourceType": "git",
+  "repoUrl": "https://github.com/raintree-technology/claude-starter",
+  "subpath": ".claude/skills/stripe",
+  "installedAt": "2026-04-08T14:22:10.520Z"
+}

@@ -1,0 +1,7 @@
+{
+  "source": "wshobson/agents/plugins/payment-processing/skills/stripe-integration",
+  "sourceType": "git",
+  "repoUrl": "https://github.com/wshobson/agents",
+  "subpath": "plugins/payment-processing/skills/stripe-integration",
+  "installedAt": "2026-04-08T14:22:12.269Z"
+}
