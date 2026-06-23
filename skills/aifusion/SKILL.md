@@ -30,6 +30,10 @@ When in doubt, answer in one pass and offer fusion as an option ("want me to run
 
 Do **not** use fusion for: simple lookups, single-file edits with a clear spec, typos, running a known command, or anything you can already nail in one pass. Fusion costs ~3–4× the tokens and latency of a single call — only spend that when the problem warrants it.
 
+## Platform requirements
+
+This skill is **POSIX-only**: every step assumes a bash shell with `mktemp`, `/tmp`, and core GNU/BSD textutils (`grep`, `head`, `wc`, `git`). It runs on macOS, Linux, WSL, and Windows-via-Git-Bash. It does **not** run on native Windows cmd/PowerShell — there `mktemp` and `/tmp` are absent, and the rest of the pipeline (`git status --porcelain` baseline, `grep -qE` structural checks, `rm -rf`, `git diff` spot-check) is bash-coupled too. On native Windows, run Claude Code under WSL or Git Bash; do not attempt to port only `RUN_DIR` — the whole flow would need porting.
+
 ## The pipeline
 
 ```
