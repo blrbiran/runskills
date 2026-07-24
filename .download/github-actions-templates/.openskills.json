@@ -1,7 +1,0 @@
-{
-  "source": "wshobson/agents/plugins/cicd-automation/skills/github-actions-templates",
-  "sourceType": "git",
-  "repoUrl": "https://github.com/wshobson/agents",
-  "subpath": "plugins/cicd-automation/skills/github-actions-templates",
-  "installedAt": "2026-04-08T14:21:38.271Z"
-}

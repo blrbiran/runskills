@@ -1,7 +1,0 @@
-{
-  "source": "vercel-labs/agent-skills/skills/react-native-skills",
-  "sourceType": "git",
-  "repoUrl": "https://github.com/vercel-labs/agent-skills",
-  "subpath": "skills/react-native-skills",
-  "installedAt": "2026-04-08T14:21:53.418Z"
-}
