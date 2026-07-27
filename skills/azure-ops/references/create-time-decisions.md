@@ -20,7 +20,6 @@ accepting a CLI default, then discovering later that the default was a decision.
 | Storage | **account kind**, **replication**, **hierarchical namespace** | Replication can be changed within limits; kind and HNS cannot |
 | Service Bus / Event Hub | **tier**, **partitioning**, **zone redundancy** | Partitioning and zone redundancy are fixed at namespace creation |
 | AKS | **network plugin/policy**, **RBAC mode**, **node subnet** | Cluster-level and effectively permanent |
-| ACR | **SKU** affects features (geo-replication, scope maps); **admin user** is a standing credential you should not enable by reflex | |
 | Any global-DNS resource | **name** | Storage accounts, ACR, Key Vault, Cosmos take a globally unique DNS label. Renaming = recreate + data move |
 
 ## How to use this
@@ -41,3 +40,10 @@ simply not settable afterwards.
   Set them explicitly; they *are* changeable, so this is a checklist item rather than a rebuild.
 - Tags are always changeable, but applying them at create time is the only way they stay consistent
   — a later sweep always misses something.
+- ACR **SKU** can be changed later (`az acr update --sku`), but it gates features you may have already
+  designed around — geo-replication and scope maps are Premium-only. Choose it against the features
+  you intend to use rather than against today's storage footprint.
+- ACR **admin user** is off by default and is a toggle, not a rebuild — but it is a standing
+  credential, and enabling it "just to get one pull working" is how it becomes permanent. A
+  repository-scoped token fits the same username/password fields; see
+  `references/images-and-registries.md`.
