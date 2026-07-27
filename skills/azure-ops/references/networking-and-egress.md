@@ -54,6 +54,18 @@ az network private-endpoint show -g <rg> -n <pe> \
 
 ## NSGs
 
+- **Zero NSGs in the path is the dangerous case, and it is silent.** An NSG can exist, report
+  `provisioningState=Succeeded`, carry exactly the rules you intended, and be attached to nothing —
+  `subnets` and `networkInterfaces` both `null`. It is then an **orphan** and governs no traffic.
+  Creating a VM with no NIC-level NSG *on the assumption the subnet already carries one* leaves a
+  host with no filtering at all, and a check that the NIC has no NSG confirms that state as correct.
+  Nothing looks wrong at any step. Read the association from both sides before relying on it:
+  ```bash
+  az network vnet subnet show -g <rg> --vnet-name <vnet> -n <subnet> \
+    --query networkSecurityGroup.id -o tsv
+  az network nsg show -g <rg> -n <nsg> \
+    --query '{subnets:subnets[].id, nics:networkInterfaces[].id}' -o json
+  ```
 - If both a subnet NSG and a NIC NSG exist, effective access is the **intersection**. A rule you
   added to one appears not to work, and nothing in that rule explains why. Prefer exactly one NSG in
   the path.

@@ -66,6 +66,24 @@ Poll, keep every response body, and look at the *variance*. A flat line across m
 the change landed and something else is refusing you — usually a different rule than the one you
 edited. Azure `403` bodies name the rule; read them rather than logging "failed".
 
+## An equality check needs its reference value written down
+
+"Verified equal" is a claim about two values, so it survives only if the value you compared against
+was recorded at the moment of comparison — a digest, a quota, a config field. There is usually no way
+back to it later: cross-tenant work in particular sees one side per login, so the **recorded constant
+is the evidence**. Without it the check silently degrades into an existence check — "a digest is
+there" — that reads exactly like the original equality claim to anyone who comes after.
+
+Two things make a reference value worthless even when it was recorded:
+
+- **It names something mutable.** A moving tag, a `latest`, a display name — the far side is expected
+  to change, so a later difference proves nothing about the copy and a match is luck.
+- **It was truncated for readability.** A matching prefix corroborates; it does not verify.
+
+When the reference value genuinely cannot be obtained, record the near-side value as a **new
+baseline and label it unverifiable**. An unverifiable check declared as one is useful; the same check
+filed alongside real ones is worse than no check.
+
 ## Verifying a revert
 
 A revert that exits non-zero may have partially applied. A revert that exits zero may have been

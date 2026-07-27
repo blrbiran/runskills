@@ -42,6 +42,9 @@ because it looks like flakiness. Gate on a terminal state (`provisioningState=Su
 This applies doubly to *reverts*. A revert that exits non-zero may have partially applied; a revert
 that exits zero may have been swallowed while the resource was still provisioning. Only `az ... show`
 output is evidence. If you are about to write "done" or "reverted", run the read first and quote it.
+Read the *binding*, not only the object — an **orphan** NSG, route table or diagnostic setting
+attached to nothing reports `Succeeded` exactly like a working one, so check the association from
+both sides.
 
 **4. Never blind-wait. Poll the real data plane, and keep the error bodies.**
 Propagation delays are real, so the instinct is to `sleep 600`. Resist it: polling is both faster and
@@ -92,7 +95,7 @@ Read the one that matches what you are about to do — each is short and specifi
 | `references/preflight-and-iac.md` | `what-if`, validating without deploy rights, Bicep/ARM/azd, and drift |
 | `references/verification-and-evidence.md` | designing acceptance gates, or when an "impossible" result appears |
 | `references/least-privilege-and-secrets.md` | any RBAC grant, firewall change, credential, or `.env` |
-| `references/networking-and-egress.md` | IP allowlists, private endpoints, DNS, or "it works from here but not there" |
+| `references/networking-and-egress.md` | IP allowlists, NSGs and subnets, private endpoints, DNS, or "it works from here but not there" |
 | `references/images-and-registries.md` | ACR, container images, tags, or promoting an image between accounts |
 | `references/service-maintenance.md` | a deployed service misbehaves, or you are diagnosing config that "should" be right |
 
