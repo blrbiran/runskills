@@ -51,6 +51,37 @@ This is useful precisely because it lets you validate without first requesting b
 Record which level produced the result. A pass at `ProviderNoRbac` is a statement about the template
 alone — it is **not** evidence that the deployment will be permitted. Name what your evidence covers.
 
+## Preview an imperative create: `--validate`
+
+`what-if` covers only the template path. Most `az ... create` commands accept `--validate`, which
+runs the same provider preflight, creates nothing and costs nothing. Two uses beyond the obvious one:
+
+**It recovers errors the CLI destroyed.** Shipped versions of the `az` error handler crash while
+formatting a failure — re-reading an HTTP body they have already consumed — and the traceback that
+reaches you (`AttributeError`, `RuntimeError: content ... already consumed`) is the handler's bug,
+not the error. The ARM message is simply gone. Re-run with `--validate` and the same rejection
+arrives through a path that prints it. A client-side traceback means *evidence discarded*, not
+*client-side defect*.
+
+**It maps a restriction's shape.** Being free, it can be run across a spread of candidates — sizes,
+families, zones, regions — which turns one refusal into a boundary. Until you have that boundary, a
+single failure says nothing about how wide the restriction is.
+
+### Quota is not capacity
+
+Three causes present identically as "you cannot create this", and reading the quota distinguishes
+none of them:
+
+| Reading | Cause | Fix |
+|---|---|---|
+| Limit above zero and usage below it, yet `SkuNotAvailable ... Capacity Restrictions` | **Capacity** — the region will not sell your subscription that family right now | Change family or region; a quota request does nothing |
+| Limit is zero | **Quota** — none allocated | Request an increase |
+| Neither, and still refused | Policy, offer type, or a regional feature gate | Read the rejection body |
+
+A preflight that reads `usage / limit` and reports "ready" has covered only the middle row — it
+passes while the create remains impossible. Neighbouring families are usually restricted together,
+so probe before concluding that the subscription can build nothing in the region.
+
 ## Imperative or declarative
 
 Both are correct in different phases, and the useful question is not which is better but which the

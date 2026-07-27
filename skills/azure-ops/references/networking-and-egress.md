@@ -52,6 +52,24 @@ az network private-endpoint show -g <rg> -n <pe> \
   --query 'privateLinkServiceConnections[].privateLinkServiceConnectionState' -o json
 ```
 
+## Joining a resource to a VNet in another resource group
+
+`--vnet-name` and a bare `--subnet` name resolve inside the command's own `-g`. They do not search
+the subscription, and finding nothing is not an error — `az vm create` will build a fresh VNet and
+subnet under exactly the names you gave and join the host to that instead. The result carries the
+intended names and the wrong address space, so every check by name confirms it as correct, and the
+invented subnet carries no NSG.
+
+Pass the subnet as a full resource ID and omit `--vnet-name` entirely:
+
+```bash
+--subnet /subscriptions/<sub>/resourceGroups/<net-rg>/providers/Microsoft.Network/virtualNetworks/<vnet>/subnets/<subnet>
+```
+
+Then verify by **address**: the private IP the create returned must fall inside the prefix you
+designed. An invented VNet takes Azure's default address space, which will not match it — and that
+mismatch, visible in the create's own output, is often the only sign anything is wrong.
+
 ## NSGs
 
 - **Zero NSGs in the path is the dangerous case, and it is silent.** An NSG can exist, report

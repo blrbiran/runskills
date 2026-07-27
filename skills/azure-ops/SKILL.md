@@ -32,6 +32,13 @@ an explicit check.
 az account show --query id -o tsv    # compare to the expected GUID, then proceed
 ```
 
+The same hole exists one scope down, and there it is worse. A short name (`--vnet-name`, a bare
+`--subnet`) resolves inside the command's own `-g` and is never searched for across the subscription
+— and finding nothing is not an error. `az` **invents** the missing resource and proceeds, under the
+name you asked for, so every later check by name agrees with you. Reference resources in another
+resource group by full ID, and verify by address rather than by name; see
+`references/networking-and-egress.md`.
+
 **2. A create is *accepted*, not *ready*.**
 `az ... create` returns when the control plane accepts the request. Firing a dependent create
 immediately is a race you will lose intermittently — which is worse than losing it every time,
@@ -92,7 +99,7 @@ Read the one that matches what you are about to do — each is short and specifi
 | File | Read it when |
 |---|---|
 | `references/create-time-decisions.md` | before any `az ... create` — the properties you cannot change later |
-| `references/preflight-and-iac.md` | `what-if`, validating without deploy rights, Bicep/ARM/azd, and drift |
+| `references/preflight-and-iac.md` | `what-if`, `--validate` before an imperative create, a create refused as quota or capacity, Bicep/ARM/azd, and drift |
 | `references/verification-and-evidence.md` | designing acceptance gates, or when an "impossible" result appears |
 | `references/least-privilege-and-secrets.md` | any RBAC grant, firewall change, credential, or `.env` |
 | `references/networking-and-egress.md` | IP allowlists, NSGs and subnets, private endpoints, DNS, or "it works from here but not there" |

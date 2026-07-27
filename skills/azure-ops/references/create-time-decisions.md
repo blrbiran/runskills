@@ -12,7 +12,7 @@ accepting a CLI default, then discovering later that the default was a decision.
 | Resource | Property | Why it cannot wait |
 |---|---|---|
 | Public IP | **SKU** (`Basic`/`Standard`) and allocation | Standard is static by definition; Basic defaults to dynamic. A dynamic address is **released on every deallocate** and comes back different, staling SSH config, NSG documentation and any allowlist. Changing SKU means replacing the address |
-| VM | **size family** | Resizing is possible but constrained by the host cluster and the region's quota for that family; building at the intended production spec avoids a migration-inside-a-migration |
+| VM | **size family** | Resizing is constrained by the host cluster, by the family's quota, and by whether the region will sell that family at all — three separate limits, distinguished in `references/preflight-and-iac.md`. Building at the intended production spec avoids a migration-inside-a-migration |
 | VM | **SSH key** / auth mode | The key is baked at provisioning. Wrong or lost key on a VM with password auth disabled means no way in |
 | VM | **OS disk `--os-disk-delete-option`** | Defaults to `Delete`. If the disk holds hand-built config you cannot regenerate, `Detach` means an accidental VM delete is survivable |
 | VM / NIC | **NSG placement** (subnet vs NIC) | If both exist, effective rules are the *intersection*. A rule added to the subnet NSG then appears not to work, and the cause is invisible in the rule you are staring at. Prefer exactly one |
