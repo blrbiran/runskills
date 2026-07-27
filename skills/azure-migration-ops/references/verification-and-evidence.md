@@ -43,8 +43,8 @@ Before concluding "it never happened", ask what would have deleted it.
 Request counts cannot distinguish a consumer from a vulnerability scanner, or from a caller that
 fails every single time. Always pull **result codes** before concluding a service has users:
 tens of thousands of requests that are 100% `4xx` is an internet scanner hitting a public hostname,
-not a dependency. This single distinction has reversed a "do not delete, it has active callers"
-verdict into a clean retirement.
+not a dependency. This single distinction is often what separates "do not delete, it has active
+callers" from a clean retirement.
 
 Similarly, **duration is not success**. A process that retries ten times before giving up runs
 *longer* than one that works. Do not read a long-lived container or a slow request as a healthy one.

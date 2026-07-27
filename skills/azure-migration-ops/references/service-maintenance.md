@@ -50,6 +50,61 @@ unexplained silences that look like hangs. Ask for both, always.
 For test harnesses, make sure output is not being captured and discarded — many test runners
 swallow it unless explicitly told not to.
 
+## Ask the signal that can actually answer
+
+Health questions usually fail because they were put to the wrong signal — CPU cannot tell you a
+database is throttling, and a host metric cannot tell you a guest is wedged.
+
+| Resource | The signal that answers "is it working" |
+|---|---|
+| App Service / Function | `AppServiceHTTPLogs` result codes; App Insights `requests` |
+| VM | boot diagnostics + **guest** metrics — without the agent installed you only see host metrics, which stay healthy while the OS is dead |
+| Cosmos DB | request charge and throttled requests (`429`), not CPU |
+| Storage | availability, and `Transactions` split by `ResponseType` |
+| Service Bus | active vs **dead-letter** message counts |
+| AKS | `ContainerLog` / `KubePodInventory`, via Container Insights |
+| ACI | the **Activity Log** — containers are ephemeral and vanish after either outcome |
+| APIM | diagnostic logs to App Insights — check the sampling rate before trusting any count |
+| Key Vault | `AuditEvent` logs |
+
+Two properties of the *source* decide whether a number means anything, and neither is visible in the
+query: **retention** (the workspace silently returns only what it still holds) and **sampling**
+(App Insights defaults to adaptive sampling, so counts are estimates). Establish both before
+building an argument on a figure.
+
+## Asking Log Analytics the right question
+
+Result codes over time — the "does it actually succeed" question, which raw request counts cannot
+answer:
+
+```kql
+requests
+| where timestamp > ago(24h)
+| summarize count() by resultCode, bin(timestamp, 1h)
+| order by timestamp desc
+```
+
+Whether anything has *ever* succeeded — the retirement question:
+
+```kql
+requests
+| where timestamp > ago(30d)
+| summarize total = count(), ok = countif(success == true)
+```
+
+`ok == 0` across the full retained window is the strongest available evidence that a service has no
+working consumer.
+
+Control-plane changes near a break, when you need to know what changed rather than what failed:
+
+```kql
+AzureActivity
+| where TimeGenerated > ago(7d)
+| where ActivityStatusValue != "Start"
+| project TimeGenerated, OperationNameValue, ActivityStatusValue, Caller
+| order by TimeGenerated desc
+```
+
 ## Stopping compute: `stop` is not `deallocate`
 
 - `az vm stop` halts the OS but leaves the VM **allocated** — compute keeps billing.

@@ -13,6 +13,31 @@ nothing and leave a hole.
 If a wider grant seems genuinely necessary, stop and ask rather than deciding unilaterally — and
 say which specific operation needs it.
 
+## Finding the narrowest role, rather than guessing at it
+
+"Use the narrowest role" is only actionable if you can find it. Work from the **operations**, not
+from a description of the job:
+
+1. **Name the operations the code actually performs.** Read the calls, do not infer from the feature.
+   `az provider operation show --namespace Microsoft.ContainerInstance` lists every operation a
+   provider exposes, and marks which are data-plane rather than management-plane — the distinction
+   that catches people out below.
+2. **Search built-in roles for the smallest that covers them.**
+   ```bash
+   az role definition list --custom-role-only false -o json \
+     --query "[?contains(to_string(permissions[0].actions), 'Microsoft.ContainerInstance')].{role:roleName, actions:permissions[0].actions}"
+   ```
+3. **Prefer a built-in role.** Define a custom role only when no built-in covers the set without
+   also granting materially more. A custom role is yours to maintain, and it silently falls behind
+   as the provider adds operations.
+4. **Scope beats role.** A broader built-in role at a **single resource group** is usually both safer
+   and simpler to reason about than a hand-cut custom role at subscription scope. Reach for the
+   scope dial before the role dial.
+
+When you settle on something wider than the minimum, write down the specific operation that forced
+it. That sentence is what lets a reviewer agree or narrow it later; without it, the grant becomes
+permanent by default.
+
 ## Owner is not data plane
 
 Subscription `Owner` grants management-plane rights and, on several services, **no data access at

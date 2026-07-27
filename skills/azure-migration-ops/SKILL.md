@@ -18,8 +18,8 @@ skill is mostly about not doing that.
 
 ## The four rules that prevent the expensive failures
 
-These earn their place because each one has already cost real debugging rounds. Understand why each
-holds and you can derive the rest.
+Each exists because the failure it prevents is **silent**: the command succeeds, and a wrong
+conclusion survives unchallenged for hours. Understand why each holds and you can derive the rest.
 
 **1. Assert the target by ID before every write.**
 Subscription *names* are mutable metadata and are routinely duplicated across tenants. A
@@ -53,7 +53,9 @@ you; discarding them turns a five-minute fix into a multi-session mystery.
 
 **Understand the ground truth before planning.** Read the live resources rather than the docs
 describing them — inventories drift. Management-plane reads (`az ... list`, `... show`) are free,
-read-only, and need no data-plane role, so there is rarely an excuse for guessing.
+read-only, and need no data-plane role, so there is rarely an excuse for guessing. If the session has
+Azure MCP tools (`azmcp-*`), prefer them for reads: they return structured results instead of text
+you have to parse, which is one less place to misread an answer.
 
 **Separate plan from evidence from execution record.** Three different documents with three
 different lifetimes: the plan says what should happen, the evidence captures what the source looked
@@ -64,6 +66,10 @@ document nobody trusts, because a reader cannot tell intent from observation.
 changed after creation without replacing the resource. Getting these wrong is not a bug you fix; it
 is a rebuild. See `references/create-time-decisions.md` — check it before writing any `create`
 command.
+
+**Preview the write before making it.** Where the change is expressed as a template, `what-if` shows
+the per-resource diff — including deletions — without spending anything. It is the only check that
+catches a create-time mistake while it is still free. See `references/preflight-and-iac.md`.
 
 **Grant the narrowest privilege, revert in the same session, verify the revert.** Never open a
 permission speculatively "in case it's needed". If a temporary grant or firewall opening is
@@ -83,6 +89,7 @@ Read the one that matches what you are about to do — each is short and specifi
 | File | Read it when |
 |---|---|
 | `references/create-time-decisions.md` | before any `az ... create` — the properties you cannot change later |
+| `references/preflight-and-iac.md` | `what-if`, validating without deploy rights, Bicep/ARM/azd, and drift |
 | `references/verification-and-evidence.md` | designing acceptance gates, or when an "impossible" result appears |
 | `references/least-privilege-and-secrets.md` | any RBAC grant, firewall change, credential, or `.env` |
 | `references/networking-and-egress.md` | IP allowlists, private endpoints, DNS, or "it works from here but not there" |
@@ -114,9 +121,10 @@ what is irreversible, and what the standing cost is on both sides.
 
 Report what the commands returned, not what they were supposed to return. When a finding contradicts
 a stated premise — including the user's — say so plainly once, with the evidence, then continue.
-Premises being wrong is the normal case in migration work: the "active callers" are often scanners,
-the "DNS outage" is often one deleted resource, the "subscription lapse" often left the subscription
-record untouched.
+Re-test premises rather than inheriting them: ask what evidence each one rests on. "This service has
+active callers" may rest on request counts with no result codes attached. "DNS is broken" may rest
+on one zone standing in for all of them. "The subscription lapsed" may rest on an inference the
+subscription record itself contradicts.
 
 If an action is irreversible, costly, or outward-facing — deleting a resource, cutting traffic over,
 opening a firewall, starting a billable VM — confirm before doing it, and confirm again for the
