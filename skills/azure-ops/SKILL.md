@@ -1,9 +1,9 @@
 ---
-name: azure-migration-ops
-description: Plan and execute Azure work safely — migrating resources between subscriptions or tenants, creating infrastructure with `az`, and maintaining running services on it. Use whenever the task involves `az` CLI commands, ARM resources, subscription or tenant moves, standing up VMs / storage / ACR / ACI / Cosmos / Service Bus / AKS, container registries and image promotion, quota and RBAC questions, firewall or private-endpoint changes, shadow or staging environments that mirror production, or diagnosing why a deployed Azure service stopped working. Also use when the user says "migrate to a new Azure account", "build this in the target subscription", "why did my ACI container fail", "the deploy succeeded but nothing works", or asks for a runbook, cutover plan, or rollback plan for cloud infrastructure — even if they do not name Azure explicitly but the resources are clearly Azure.
+name: azure-ops
+description: Plan and execute Azure work safely — creating infrastructure with `az`, migrating resources between subscriptions or tenants, and maintaining running services on it. Use whenever the task involves `az` CLI commands, ARM resources, subscription or tenant moves, standing up VMs / storage / ACR / ACI / Cosmos / Service Bus / AKS, container registries and image promotion, quota and RBAC questions, firewall or private-endpoint changes, shadow or staging environments that mirror production, or diagnosing why a deployed Azure service stopped working. Also use when the user says "migrate to a new Azure account", "build this in the target subscription", "why did my ACI container fail", "the deploy succeeded but nothing works", or asks for a runbook, cutover plan, or rollback plan for cloud infrastructure — even if they do not name Azure explicitly but the resources are clearly Azure.
 ---
 
-# Azure Migration & Operations
+# Azure Operations
 
 ## Outcome
 
