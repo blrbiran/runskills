@@ -17,7 +17,7 @@ accepting a CLI default, then discovering later that the default was a decision.
 | VM | **OS disk `--os-disk-delete-option`** | Defaults to `Delete`. If the disk holds hand-built config you cannot regenerate, `Detach` means an accidental VM delete is survivable |
 | VM / NIC | **NSG placement** (subnet vs NIC) | If both exist, effective rules are the *intersection*. A rule added to the subnet NSG then appears not to work, and the cause is invisible in the rule you are staring at. Prefer exactly one |
 | Cosmos DB | **API and `serverVersion`** | Not upgradable in place. A clean restart is the cheapest moment to leave a deprecated version behind |
-| Storage | **account kind**, **replication**, **hierarchical namespace** | Replication can be changed within limits; kind and HNS cannot |
+| Storage | **account kind**, **replication**, **hierarchical namespace** | Replication changes within limits; kind does not. HNS is the one to state precisely: it is not a flag you can set later, but it is also **not a rebuild** — enabling it on an existing account is a one-way migration (`az storage account hns-migration start`, validation pass first) with prerequisites and no route back. Calling it impossible invites planning a rebuild that is not required |
 | Service Bus / Event Hub | **tier**, **partitioning**, **zone redundancy** | Partitioning and zone redundancy are fixed at namespace creation |
 | AKS | **network plugin/policy**, **RBAC mode**, **node subnet** | Cluster-level and effectively permanent |
 | Any global-DNS resource | **name** | Storage accounts, ACR, Key Vault, Cosmos take a globally unique DNS label. Renaming = recreate + data move |
