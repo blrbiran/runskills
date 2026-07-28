@@ -61,6 +61,33 @@ An AKS-specific note: after revoking a Kubernetes RBAC grant, the authorization 
 honouring the old decision for roughly five minutes. A `kubectl` call that still succeeds right
 after the revoke is that cache, not a failed revert — verify with the role assignment list.
 
+## An assignment list is the intent; the principal's own reads are the access
+
+`az role assignment list` answers "what did we grant, at the scopes we asked about". That is not the
+same question as "what can this principal do", and the gap is not hypothetical: assignments made at a
+higher scope **inherit downward** without appearing in a scope-local query, and deny assignments do
+not show up alongside the grants they override.
+
+When a narrow scope is the safety property — the reason it is safe to hand an identity to something
+untrusted — prove it by **acting as the principal**, in both directions:
+
+```bash
+# on the host holding the identity
+az login --identity --only-show-errors
+az account show --query id -o tsv                 # the expected subscription
+az resource list -g <the group it SHOULD reach>   # must succeed, and parse as JSON
+az resource list -g <the group it must NOT reach> # must fail; keep the body
+```
+
+The refusal is the half worth collecting: an `AuthorizationFailed` body names the principal's object
+ID, the action and the scope, which is a far stronger record than a list that merely failed to
+mention a role. **Run the positive case too** — a probe that only ever fails proves nothing about
+whether you tested anything, since a broken login also fails both ways.
+
+Parse the success case rather than counting its lines. Piping a list into `wc -l` prints `0` both for
+an authorized query against an empty group and for an authorization error, because the pipe discards
+the exit code — the same class of mistake as trusting an exit code in the first place.
+
 ## Temporary grants and openings need a watchdog, not a trap
 
 A shell `trap` fires on the script's own exit paths. It cannot help if the session itself dies — and
