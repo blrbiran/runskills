@@ -45,6 +45,11 @@ immediately is a race you will lose intermittently — which is worse than losin
 because it looks like flakiness. Gate on a terminal state (`provisioningState=Succeeded`,
 `PowerState/running`) before anything that depends on it.
 
+The mirror case is a command that never returns. The CLI's own wait can expire while the operation is
+still **in flight**, so read `provisioningState` before concluding anything: `Deleting` or `Updating`
+means it is proceeding and the move is to poll to a terminal state. Re-issuing a destructive command
+you assumed had failed is the expensive mistake here.
+
 **3. Verify against the resource, not the exit code.**
 This applies doubly to *reverts*. A revert that exits non-zero may have partially applied; a revert
 that exits zero may have been swallowed while the resource was still provisioning. Only `az ... show`
