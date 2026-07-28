@@ -87,6 +87,14 @@ changed after creation without replacing the resource. Getting these wrong is no
 is a rebuild. See `references/create-time-decisions.md` — check it before writing any `create`
 command.
 
+**Treat this skill's capability claims as leads, not verdicts.** "Cannot be changed after creation",
+"needs a higher tier", "there is no flag for it" — Azure only ever adds in-place migrations and
+lowers tier gates, so these decay in one direction: toward a rebuild you did not need, or a tier you
+already have. Confirm at the moment of use with `az <group> update --help`, plus a look for an
+`az <group> migration` subcommand. That check is local, free and needs no subscription, which is why
+it belongs in the flow rather than in a periodic sweep — a swept file is only current on the day it
+was swept.
+
 **Preview the write before making it.** Where the change is expressed as a template, `what-if` shows
 the per-resource diff — including deletions — without spending anything. It is the only check that
 catches a create-time mistake while it is still free. See `references/preflight-and-iac.md`.

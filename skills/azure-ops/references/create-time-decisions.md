@@ -7,14 +7,15 @@ rebuilds. Decide them **before** writing the `create` command.
 The recurring failure is not ignorance of these facts. It is deciding a property implicitly by
 accepting a CLI default, then discovering later that the default was a decision.
 
-**These claims decay, and they decay in one direction.** Azure keeps adding in-place migrations, so a
-row that was true when written turns into a rebuild you no longer need. Every "cannot be changed"
-below has been re-checked against `az ... --help` on CLI 2.83.0, and the sweep moved five of them —
-SSH key, NSG placement, Cosmos `serverVersion`, Service Bus tier and the AKS network plugin all had
-an update path the table denied. Re-run that sweep rather than trusting the table's age: `--help` is
-local, free, and needs no subscription. Where a flag exists but its conditions do not, this file says
-so instead of guessing — a flag proves the property is not create-time-only; it does not prove the
-transition is unconditional.
+**The durable half of this file is the property list; the verdicts are leads.** Which properties are
+worth deciding before you create does not change. Whether each one is still immutable does — see the
+capability-claims rule in `SKILL.md`, and confirm the verdict you are about to act on rather than
+the whole table. That the claims decay is not hypothetical here: every "cannot be changed" below was
+re-checked against `az ... --help` on CLI 2.83.0 and the check moved five of them — SSH key, NSG
+placement, Cosmos `serverVersion`, Service Bus tier and the AKS network plugin all had an update
+path the table denied. Where a flag exists but its conditions are unclear, this file says so instead
+of guessing: a flag proves the property is not create-time-only; it does not prove the transition is
+unconditional.
 
 ## The list worth checking every time
 
