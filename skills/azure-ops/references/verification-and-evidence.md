@@ -32,6 +32,15 @@ Before concluding "it never happened", ask what would have deleted it.
     --start-time <ISO8601> \
     --query '[].{op:operationName.value, status:status.value, t:eventTimestamp}' -o table
   ```
+- **That authority is eventually consistent, and it reads exactly like a failure while it catches
+  up.** The Activity Log ingests behind the operation: minutes after a run has demonstrably finished,
+  the terminal `Succeeded` row and the subsequent `delete` can both still be missing, while the
+  `Started` and `Accepted` rows are already there. A half-populated sequence is the *normal*
+  appearance of a recent success, not the signature of one that failed partway. **Re-query before
+  concluding anything from an absence** — this is rule 4 in the read direction: an absence is a
+  sample, and one sample cannot tell latency from a fact. Where a resource read answers the same
+  question, prefer it: the resource is current, the log is not. Reading "is anything left over?" off
+  a live `list` is sound; reading "did it ever happen?" off that same empty `list` is not.
 - **Platform metrics cap the window they return** regardless of the range you request — a 90-day
   request may quietly return 31 days. State the window you actually got, not the one you asked for.
 - **Empty ≠ zero.** `az vm list-usage` returns an empty list, not an error, when

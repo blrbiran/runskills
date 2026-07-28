@@ -64,6 +64,11 @@ diagnostic. A flat line of identical failures is a *stable rejection*, not slow 
 distinction is often the whole diagnosis. Azure's `403` bodies name precisely which rule rejected
 you; discarding them turns a five-minute fix into a multi-session mystery.
 
+This holds when *reading*, too, and there it is easier to miss because the answer looks conclusive
+rather than pending. Log and metric surfaces ingest behind the operation, so a missing row is a
+sample, not a fact: re-query before concluding an event never happened. Where a resource read
+answers the same question, prefer it — the resource is current, the log is not.
+
 ## Workflow
 
 **Understand the ground truth before planning.** Read the live resources rather than the docs
