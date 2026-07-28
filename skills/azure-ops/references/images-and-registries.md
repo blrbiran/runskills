@@ -60,6 +60,37 @@ changed. Building into it destroys the fallback the experiment depends on.
 Build the experiment to a **distinct tag** and point configuration at it. Then a failure costs one
 config line to roll back, and the known-good image is still there.
 
+### Checking whether a tag was overwritten, when no digest was recorded
+
+A retag reuses the tag name, so a list of tag names cannot tell an intact escrow from one that was
+built over — both show exactly the name you expect. The digest comparison above is the strong check,
+but it needs a reference value someone wrote down at escrow time, and often nobody did.
+
+The registry keeps its own timestamps, which need no far-side value:
+
+```bash
+az acr repository show-tags -n <registry> --repository <repo> --detail \
+  --query "[].{tag:name, created:createdTime, updated:lastUpdateTime}" -o json
+```
+
+`lastUpdateTime` equal to `createdTime` is consistent with a tag nothing has written since it was
+created. It is weaker than a digest comparison — it speaks to *when*, not to *what* — so report it as
+that. Only the unchanged direction has been observed; **before relying on this to catch an
+overwrite, confirm the stamp actually moves when a tag is repointed.** A check whose positive case
+you have never seen fire is an assumption wearing a command.
+
+## An escrowed copy is a snapshot, not a mirror
+
+`az acr import` copies an image once. Afterwards the two registries have no link, so neither reports
+that they have diverged — and under a content-addressed tag scheme they diverge on the first
+Dockerfile edit: the tag moves, the source builds the new one, and the escrow still holds the old
+tag under the old name.
+
+This does not weaken the escrow as a **fallback**; the image it holds is as good as the day it was
+copied. What expires is its **equivalence** — it quietly stops being a copy of what the source
+currently runs, with no event anywhere to notice. Before treating an escrow as "what production
+runs", read the source's current tag rather than the escrow's age.
+
 ## Registry hostnames hide in places a secret cannot fix
 
 Migrating a registry usually means changing a variable. Check for hardcoded hostnames in places that
