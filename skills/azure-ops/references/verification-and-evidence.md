@@ -102,3 +102,25 @@ evidence.
 Read the resource, quote the fields that matter, and check for leftovers explicitly — for example
 that **zero** role assignments remain at the scope you granted, not merely that the delete command
 succeeded.
+
+## A deletion needs its own reading
+
+`ResourceNotFound` looks like the strongest evidence there is, and for several Azure services it is
+incomplete. They **soft-delete**: the resource is absent from `show`, still restorable, and still
+holding its globally unique name until a purge date. Ask the service rather than carrying a list of
+which ones behave this way — that list decays in the usual direction:
+
+```bash
+az apim deletedservice list     # a lead: the form varies by service, check `az <group> --help`
+  → deletionDate, scheduledPurgeDate
+```
+
+Two things follow. The purge date is the deadline for an **undo you may not know you have**, which
+matters most in the case where the delete turns out to have been wrong. And a recreate under the same
+name before that date meets the held name rather than a free one, so the plan is to restore or to
+purge first — decided deliberately, not discovered when the create fails.
+
+Deletes also produce the **orphan** in its mirror form. An orphan control is attached to nothing;
+the same break happens upward, where removing the last child leaves its container — an App Service
+Plan whose only app is gone reports healthy and empty. After any delete, list what remains at the
+scope; the delete's own output describes one resource and cannot describe what it stranded.

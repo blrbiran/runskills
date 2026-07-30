@@ -58,6 +58,13 @@ Read the *binding*, not only the object — an **orphan** NSG, route table or di
 attached to nothing reports `Succeeded` exactly like a working one, so check the association from
 both sides.
 
+Deletes fail the same way in the other direction, and there `ResourceNotFound` is the misleading
+read: several services soft-delete, so the resource stays restorable and its **name stays held**
+while every `show` reports it gone. Ask the service for its deleted list at the moment of use — per
+the capability-claims rule below — and read the purge date: it is both the deadline for an undo and
+the date the name comes back. Deleting the last child leaves an **orphan** in the mirror direction —
+a container with nothing left in it, reporting healthy. Count what remains at the scope.
+
 **4. Never blind-wait. Poll the real data plane, and keep the error bodies.**
 Propagation delays are real, so the instinct is to `sleep 600`. Resist it: polling is both faster and
 diagnostic. A flat line of identical failures is a *stable rejection*, not slow propagation — that
@@ -118,7 +125,7 @@ Read the one that matches what you are about to do — each is short and specifi
 |---|---|
 | `references/create-time-decisions.md` | before any `az ... create` — the properties you cannot change later |
 | `references/preflight-and-iac.md` | `what-if`, `--validate` before an imperative create, a create refused as quota or capacity, Bicep/ARM/azd, and drift |
-| `references/verification-and-evidence.md` | designing acceptance gates, or when an "impossible" result appears |
+| `references/verification-and-evidence.md` | designing acceptance gates, confirming a delete or a revert, or when an "impossible" result appears |
 | `references/least-privilege-and-secrets.md` | any RBAC grant, firewall change, credential, or `.env` |
 | `references/networking-and-egress.md` | IP allowlists, NSGs and subnets, private endpoints, DNS, or "it works from here but not there" |
 | `references/images-and-registries.md` | ACR, container images, tags, or promoting an image between accounts |
@@ -141,6 +148,13 @@ queues, claim real work, and write into real databases within seconds of startin
 **key by key from what the code actually reads**, then verify key-by-key what must be *absent*. The
 absent list is the safety property, so make it explicit and check it, rather than trusting that you
 remembered.
+
+That rule has a second half, and it bites even when you have followed the first: **the source config
+is evidence of what was once set, not of what is read.** A live config accumulates keys nothing
+consumes, and a key naming a resource is not proof the resource is used — acting on one sends you
+provisioning a container, queue or share the code never asks for, and the mistake survives review
+because the config and the plan agree with each other. Confirm the consumer in the code before
+treating any key as a requirement.
 
 Before cutover, know these and say them out loud: what carries traffic today, what the rollback is,
 what is irreversible, and what the standing cost is on both sides.
