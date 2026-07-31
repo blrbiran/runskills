@@ -70,6 +70,51 @@ Then verify by **address**: the private IP the create returned must fall inside 
 designed. An invented VNet takes Azure's default address space, which will not match it — and that
 mismatch, visible in the create's own output, is often the only sign anything is wrong.
 
+## An `update` that takes a list **replaces** it
+
+`--address-prefixes`, `--tags`, `--dns-servers` and their siblings set the whole collection rather
+than adding to it. Passing only the value you are adding removes everything already there — on a
+live subnet, that is the prefix its running hosts are addressed from.
+
+The read and the write disagree about the field name, which is what makes this expensive. A
+single-stack subnet reports its range as `addressPrefix` (**singular**); the plural
+`addressPrefixes` returns `null`, so the query whose name matches the write flag answers "there is
+nothing here" about a subnet that is carrying traffic. Act on that answer and the update drops the
+range instead of extending it.
+
+```bash
+az network vnet subnet show … --query "{singular:addressPrefix,plural:addressPrefixes}" -o json
+```
+
+Read both forms, pass every existing value back alongside the new one, then read the resulting list
+and confirm the earlier values are still in it. A VNet's `addressSpace.addressPrefixes` is plural in
+both directions, so checking one is not evidence about the other.
+
+## A single-stack VNet cannot reach an AAAA-only endpoint
+
+A VNet carries IPv4 only unless it was given IPv6 space, and some managed services publish **only**
+an AAAA record for their direct endpoint. A host in that VNet fails at connect with `ENETUNREACH`
+(errno 101) — no timeout, no refusal, no TLS exchange — which reads like an NSG rule, a firewall or a
+missing private endpoint and sends the diagnosis to the wrong place entirely.
+
+Ask what the name resolves to, and whether the host has a route at all:
+
+```bash
+getent ahostsv4 <host>      # empty -> there is no A record to reach
+getent ahostsv6 <host>
+ip -6 route show default    # empty -> no IPv6 path regardless of DNS
+```
+
+Dual-stacking is **additive** and does not replace the VM: IPv6 space on the VNet, a `/64` on the
+subnet, a **Standard** SKU IPv6 public IP, and a second `ipConfiguration` on the NIC. Confirm those
+capabilities at the moment of use rather than trusting this paragraph. The guest may need no
+configuration — an Azure Linux image picks the address up over DHCPv6 — but read `ip -6 addr` rather
+than assuming it did.
+
+Where the service also publishes a dual-stacked pooler or proxy hostname, reaching that over IPv4 is
+the smaller change. Either path still has to satisfy the service's own TLS chain, which is a separate
+question from reachability.
+
 ## NSGs
 
 - **Zero NSGs in the path is the dangerous case, and it is silent.** An NSG can exist, report
