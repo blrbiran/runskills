@@ -70,25 +70,38 @@ Then verify by **address**: the private IP the create returned must fall inside 
 designed. An invented VNet takes Azure's default address space, which will not match it — and that
 mismatch, visible in the create's own output, is often the only sign anything is wrong.
 
-## An `update` that takes a list **replaces** it
+## A list-valued property has two field names, and the empty one reads as "nothing is set"
 
-`--address-prefixes`, `--tags`, `--dns-servers` and their siblings set the whole collection rather
-than adding to it. Passing only the value you are adding removes everything already there — on a
-live subnet, that is the prefix its running hosts are addressed from.
+The same property is exposed as a singular field and a plural one, and **which of them is populated
+depends on how many values it holds**. Query the other and you get `null` — which reads as *"nothing
+is configured here"* about a resource that is live and doing its job. Two instances, on unrelated
+resource types:
 
-The read and the write disagree about the field name, which is what makes this expensive. A
-single-stack subnet reports its range as `addressPrefix` (**singular**); the plural
-`addressPrefixes` returns `null`, so the query whose name matches the write flag answers "there is
-nothing here" about a subnet that is carrying traffic. Act on that answer and the update drops the
-range instead of extending it.
+| property | singular | plural |
+|---|---|---|
+| subnet address range | `addressPrefix` | `addressPrefixes` |
+| NSG rule destination ports | `destinationPortRange` | `destinationPortRanges` |
 
 ```bash
 az network vnet subnet show … --query "{singular:addressPrefix,plural:addressPrefixes}" -o json
+az network nsg rule list     … -o json    # whole rules; the projection is what hides the other field
 ```
 
-Read both forms, pass every existing value back alongside the new one, then read the resulting list
-and confirm the earlier values are still in it. A VNet's `addressSpace.addressPrefixes` is plural in
-both directions, so checking one is not evidence about the other.
+**On a read it is a false negative about a control.** A rule allowing 80 and 443 through the plural
+field answers `null` for the singular one, so a port audit reports those ports closed on an NSG that
+allows them. Nothing is damaged and nothing errors, which is what makes it survive: the reading is
+conclusive-looking, and the mirror — reporting a port open because the *other* field was the
+populated one — is available by the same route.
+
+**On a write it replaces the collection.** `--address-prefixes`, `--tags`, `--dns-servers` and their
+siblings set the whole list rather than adding to it, and the write flag's name matches the *plural*
+read. Query the plural on a single-stack subnet, get `null`, and the update drops the prefix its
+running hosts are addressed from instead of extending it.
+
+Read both forms — or read the whole object and let it show you which one it filled in. On a write,
+pass every existing value back alongside the new one, then read the resulting list and confirm the
+earlier values are still in it. A VNet's `addressSpace.addressPrefixes` is plural in both directions,
+so checking one is not evidence about the other.
 
 ## A single-stack VNet cannot reach an AAAA-only endpoint
 
