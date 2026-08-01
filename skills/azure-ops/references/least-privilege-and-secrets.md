@@ -143,6 +143,16 @@ Then verify the revert against the resource, and check that **zero** assignments
   with `content/read` fits username/password fields without enabling the admin user. This matters
   most when the credential is passed onward — anything handed to a container through environment
   variables is readable by anyone who can `show` that container.
+- **A SAS's revocability is fixed at the moment it is issued.** A service SAS can reference a
+  container **stored access policy**, which keeps expiry and permissions server-side: one policy
+  update extends or revokes every SAS pointing at it, with nothing reissued and nothing redeployed.
+  An account SAS has no policy to reference — look for a `--policy-name` on the generating command
+  before assuming either way — so its expiry is signed in, and the only way to cut it short is
+  rotating the account key, **which invalidates every other SAS signed with that key at the same
+  time.** Reach for the policy whenever the credential will outlive the session that issued it: a
+  long-dated policy-less SAS in a deployment secret is a bearer credential with no off switch, and
+  its expiry is a deadline nothing observes — it surfaces as authorization failures wherever that
+  credential is consumed, which is rarely where anyone is watching.
 - **A credential committed to a private repository is still exposed.** Private is a configuration,
   not a property: a collaborator change or a visibility flip detonates it. Treat it as a rotation
   task with a deadline, not a resolved issue.
