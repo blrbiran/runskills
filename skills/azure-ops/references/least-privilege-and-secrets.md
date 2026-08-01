@@ -43,8 +43,11 @@ permanent by default.
 Subscription `Owner` grants management-plane rights and, on several services, **no data access at
 all**. This surprises people repeatedly:
 
-- **Storage** — with `allowSharedKeyAccess=false`, reading blobs needs an Entra data role
-  (`Storage Blob Data Reader`), which Owner does not include.
+- **Storage** — `--auth-mode login` forces the Entra path, so a blob read fails with an
+  authorization error **whether or not the account allows shared keys**; `allowSharedKeyAccess`
+  decides only whether a fallback exists. That path needs `Storage Blob Data Reader`, which Owner
+  does not include, and the failure goes to stderr — a projection like `--query "length(@)"` then
+  prints nothing at all, which reads like an empty container.
 - **AKS with Azure RBAC for Kubernetes** — Owner grants no Kubernetes `dataActions`; `kubectl`
   returns `Forbidden`. The narrow fix is a temporary `Azure Kubernetes Service RBAC Writer` scoped
   to a single **namespace**. Prefer `az aks command invoke` over a local kubeconfig: nothing lands
@@ -56,6 +59,13 @@ all**. This surprises people repeatedly:
 A consequence worth exploiting: **prefer management-plane commands when they exist.** Creating
 containers and file shares via `az storage container-rm create` / `az storage share-rm create`
 avoids needing a data-plane role at all.
+
+The read side has a sibling too: `--auth-mode key` reaches the data plane through a management-plane
+`listKeys` an Owner already holds, so a blob or share *read* needs no grant either. Reach for it
+**before** opening a role for yourself — the authorization error names the roles that would fix it,
+which invites exactly the speculative grant this file opens by warning against. Its limit is the
+condition above: with `allowSharedKeyAccess=false` there is no key to list, and the Entra role is
+genuinely required.
 
 An AKS-specific note: after revoking a Kubernetes RBAC grant, the authorization webhook keeps
 honouring the old decision for roughly five minutes. A `kubectl` call that still succeeds right
