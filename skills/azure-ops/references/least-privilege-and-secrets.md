@@ -71,6 +71,30 @@ An AKS-specific note: after revoking a Kubernetes RBAC grant, the authorization 
 honouring the old decision for roughly five minutes. A `kubectl` call that still succeeds right
 after the revoke is that cache, not a failed revert — verify with the role assignment list.
 
+## The mirror: a data-plane role hides the resource instead of refusing you
+
+Everything above is a management-plane identity that cannot reach data, and it announces itself — an
+authorization error, usually naming the role that would fix it. **The reverse does not present as a
+permission failure at all**, which is what makes it expensive.
+
+A role scoped to a service's *operations* may carry no management-plane **read** of the resource
+those operations act on. The CLI resolves the resource through ARM before it ever reaches the data
+plane, so the command fails at that first step with *the resource could not be found in subscription
+`<the one you meant>`* — a confident sentence, naming the right subscription, which sends the reader
+looking for a deleted resource, a typo, or the wrong tenant. It is the same not-found ambiguity rule
+1 opens on, arriving through the one door rule 1's own check cannot close.
+
+**Read a role's `actions`, not its name.** A name describing what the role lets you *do* says nothing
+about whether it includes the `Microsoft.<provider>/<type>/read` that tooling needs to find the
+resource in the first place, and the two are routinely packaged apart. Server-side build and task
+commands need a third thing again: queueing work is its own action, distinct from both planes, so a
+role granting the read and the data-plane write can still leave those commands failing.
+
+Separating the two causes costs one read: ask for the same resource as an identity holding
+management-plane rights. If it appears, the resource exists and the caller's role is the gap — and
+the fix is the narrowest role whose `actions` cover the operations actually run, which is usually not
+the one named after the thing you are trying to do.
+
 ## An assignment list is the intent; the principal's own reads are the access
 
 `az role assignment list` answers "what did we grant, at the scopes we asked about". That is not the

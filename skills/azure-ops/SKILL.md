@@ -39,6 +39,14 @@ name you asked for, so every later check by name agrees with you. Reference reso
 resource group by full ID, and verify by address rather than by name; see
 `references/networking-and-egress.md`.
 
+A third cause **defeats the assertion above rather than being caught by it.** A principal holding
+only *data-plane* rights cannot see the resource through ARM at all, and ARM answers a caller that
+cannot see something with **not found — never forbidden**, while naming the subscription you
+correctly targeted. So the assertion passes, the message reads as an authoritative statement about
+that subscription's contents, and the resource is sitting in it. Re-read the same resource as an
+identity holding management-plane rights: if it appears, it exists and the caller's role is the gap.
+See `references/least-privilege-and-secrets.md`.
+
 **2. A create is *accepted*, not *ready*.**
 `az ... create` returns when the control plane accepts the request. Firing a dependent create
 immediately is a race you will lose intermittently — which is worse than losing it every time,
