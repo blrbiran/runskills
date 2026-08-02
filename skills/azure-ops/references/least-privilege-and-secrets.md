@@ -95,6 +95,37 @@ management-plane rights. If it appears, the resource exists and the caller's rol
 the fix is the narrowest role whose `actions` cover the operations actually run, which is usually not
 the one named after the thing you are trying to do.
 
+## A missing login fails only half the commands
+
+An unattended host that shells out to `az` — a worker creating containers, a job draining a queue —
+depends on the CLI's login the way it depends on a package being installed, and nothing declares it.
+When that login goes, `az` does not stop. It splits.
+
+Commands that **carry their own credential** — `--account-key`, `--connection-string`, a SAS — never
+consult the login. Commands that resolve through ARM do. With `AZURE_CONFIG_DIR` pointed at an empty
+directory, `az storage container list --account-key <a deliberately invalid key>` answers
+*Authentication failure … invalid account key, connection string or sas token* — it reached the
+service and evaluated the key — while `az storage account list` in the same shell answers *Please run
+`az login`*. Two commands seconds apart, disagreeing about whether the CLI is usable. That check is
+free and needs no real key, which makes it a quick way to tell a credential problem from a permission
+one.
+
+Note which way this cuts against the `--auth-mode key` route above: **that** one reaches the data
+plane through a management-plane `listKeys`, so it does need the login. A key handed to the command
+directly does not.
+
+So **a subset of `az` still working is not evidence the CLI is authenticated**, and on a busy host the
+key-carrying calls are usually the majority — the failure then looks like one broken operation rather
+than a lost credential. `az account show` is the reading. A populated `~/.azure` is not: a logout
+leaves the token caches on disk and empties only the profile's subscription list, so the directory
+looks much the same either way.
+
+The repair the error text invites — `az login` — restores the same dependency with a fresh expiry,
+because a user login is one person's session and renewing it is interactive. Where the host has a
+**managed identity**, `az login --identity` mints from the instance metadata endpoint with no user
+credential in the loop. Whether that identity can do the work is the separate question the next
+section answers; assignment and access are not the same thing.
+
 ## An assignment list is the intent; the principal's own reads are the access
 
 `az role assignment list` answers "what did we grant, at the scopes we asked about". That is not the
