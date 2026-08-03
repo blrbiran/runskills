@@ -160,4 +160,4 @@ Deleting "mostly" and "theoretically" would strengthen claims the evidence doesn
 
 ---
 
-改完的通读判据见 SKILL.md「改完通读一遍」。
+改完的通读判据见 SKILL.md 第 5 步。
