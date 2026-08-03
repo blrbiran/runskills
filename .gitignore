@@ -1,8 +1,11 @@
 .DS_Store
 
-.omc
-.omo
-.omx
+.omc/
+.omo/
+.omx/
+.ccmem/
+.codegraph/
 
-.ccmem
-.codegraph
+__pycache__/
+*.pyc
+*.pyo
