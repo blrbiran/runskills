@@ -124,3 +124,23 @@ Deletes also produce the **orphan** in its mirror form. An orphan control is att
 the same break happens upward, where removing the last child leaves its container — an App Service
 Plan whose only app is gone reports healthy and empty. After any delete, list what remains at the
 scope; the delete's own output describes one resource and cannot describe what it stranded.
+
+**Permanence is decided when you delete, not afterwards.** A purge is a separate operation and not
+every service has one. Where it is missing, the flag that makes a delete permanent belongs to the
+delete of the **live** resource, so passing it once the resource is already soft-deleted does
+nothing — and that is not an error, so the command reports success and the tombstone stays. The only
+route left is to recover the resource to live and delete it again properly, and recovery is
+addressed inside its original resource group, so deleting the group first means recreating it to get
+back there. Establish which shape a service has *before* the delete:
+
+```bash
+az <group> <resource> --help    # a lead: look for a `purge` sibling, or a permanence flag on `delete`
+```
+
+**A container delete cannot be permanent, and this is where listing the scope stops working.**
+`az group delete` has no permanence flag — its only force option names a short list of resource
+types and governs graceful shutdown, not soft-delete — so **every soft-deleting child survives its
+resource group in restorable form**, holding its name. Nothing at the scope will say so: the group
+is absent from `az group list` and its resources from `az resource list`, and both read zero while
+the recoverable copies exist. A cascade delete therefore needs a per-service deleted list, one
+service type at a time, and "the group is gone" is not evidence about the data that was in it.
