@@ -179,3 +179,12 @@ subscription record itself contradicts.
 If an action is irreversible, costly, or outward-facing — deleting a resource, cutting traffic over,
 opening a firewall, starting a billable VM — confirm before doing it, and confirm again for the
 *timing* if the user reserved that decision. Approval of a mechanism is not approval of a moment.
+
+Nor is it approval of a **population**. Name what will be destroyed, how many, and what recovery
+window each item still has — and expect that set to be hard to size, because Azure routinely keeps
+it out of the commands you would size it with: soft-deleted resources appear in no resource list,
+and a cascade delete enumerates nothing before it runs. **If the work itself discovers the set is
+larger than the one the question was asked about, or that it holds a live recovery window nobody
+knew about, that is a new decision and not the execution of the old one.** The failure is silent in
+the usual direction: you hold an approval, its words fit what you are about to do, and the thing
+that changed is the only part not written down in it.
