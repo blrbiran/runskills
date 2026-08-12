@@ -2,6 +2,7 @@
 name: tech-writer
 description: |
   Write or rewrite explanatory technical documents and articles for a specific target audience — especially first-time / beginner readers — in a clear, guiding "讲解体" (explanatory prose) style rather than terse notes. Use this skill whenever the user wants to 写文章 / 写技术文档 / 整理成文档 / 写博客 / 科普 / 讲清楚一个概念, or asks to 润色 / 改写 / 重构 an article for readability, or to 把讨论/资料总结成一篇文档. Also trigger when the user complains a document is 太简略 / 太啰嗦 / 像笔记堆砌 / 读者看不懂 / 结构乱 / 术语没解释 / 有歧义. Make sure to use this skill for any task about making technical writing clear and readable for a defined audience, even if the user doesn't explicitly say "写作" or "skill" — the trigger is the intent to produce reader-friendly explanatory writing.
+  边界：本 skill 管的是**读者懂不懂**——结构、信息顺序、术语解释、详略。稿子结构已经没问题、用户抱怨的是**读起来的口气**（生硬 / 不够口语 / 像说明书 / 太正式 / 念着别扭 / 说人话 / 更自然点），那是语体，归 `tech-writer-voice`；抱怨**像 AI 写的**（满屏加粗 / 套路句式 / 空转），归 `tech-writer-deslop`。这两类别拿本 skill 接：它是重流程（定读者 → 搭骨架 → 读者测试），为了调口气跑一遍代价太大，还容易顺手动了结构。「润色」这个词三家都沾，判断依据是用户到底在抱怨什么。
 ---
 
 ## 这个 skill 做什么
